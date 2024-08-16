@@ -1,3 +1,5 @@
+![Nurikabe web program](https://github.com/TheVajs/nurikabe_naloga/tree/main/imgs/screen_shot.png?raw=true)
+
 # Nurikabe Assigment OM
 
 ## How to install? (only for compiling)
@@ -32,7 +34,7 @@ link: https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_Wasm<br />
 
 ## Run the program/web page
 
-#### With visual studio code
+### With visual studio code
 
 Install Extension
 
@@ -40,6 +42,6 @@ https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer
 
 and then right click on `index.html` in the root directory and click "Open with Live Server"
 
-#### With npm
+### With npm
 
 
