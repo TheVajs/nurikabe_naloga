@@ -200,31 +200,34 @@
           </form>
           <div
             style="
-              margin: 12px;
+              margin: 6px;
               border-radius: 4px;
-              width: 420px;
-			  font-size: 0.9em;
+              width: 280px;
+              font-size: 0.85em;
               background-color: rgba(255, 46, 106, 0.141);
             "
           >
-            <p style="text-align: justify; padding: 10px; color: rgb(64, 64, 78);">
+            <p
+              style="text-align: justify; padding: 10px; color: rgb(64, 64, 78)"
+            >
               Bolj je mravlja požrešna, manj naključni je rezultat. Problem
-              'nurikabe10x10v1.csv' se reši, če je ta vrednos pod 0.5 ali pa
-			  blizu 0.1. Nekateri drugi večji problemi se tudi dajo rešit z več
-			  iteracij in manjšim greedy parametrom. Pri večini primerih pa zgleda
-			  boljša višja vrednost, proti 0.9 (tako kot je v članku).
+              'nurikabe10x10v1.csv' se reši, če je ta vrednos bližje 0.5
+              hitreje. Nekateri drugi večji problemi se tudi dajo rešit z več
+              iteracij in manjšo požrešnostjo mravelj. Pri večini primerih pa
+              zgleda boljša višja vrednost, proti 0.9 (tako kot je v članku).
             </p>
           </div>
         </div>
-        <br />
-        <button
-          class="button-6"
-          onclick="getElementById('file_selector').click()"
-          role="button"
-        >
-          Load nurikabe
-        </button>
-        <button id="solve" class="button-6" role="button">Solve</button>
+        <div style="margin: 5px">
+          <button
+            class="button-6"
+            onclick="getElementById('file_selector').click()"
+            role="button"
+          >
+            Load nurikabe
+          </button>
+          <button id="solve" class="button-6" role="button">Solve</button>
+        </div>
       </div>
     </section>
   </body>
