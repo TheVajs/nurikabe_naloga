@@ -4,6 +4,7 @@
 ![screen_shot](https://github.com/user-attachments/assets/11ae8539-8a89-4401-8dfe-88674b96726b)
 
 <br />
+
 ## How to install? (only for compiling)
 
 1. install rust
