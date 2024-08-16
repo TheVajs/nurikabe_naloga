@@ -1,4 +1,6 @@
-![Nurikabe web program](https://github.com/TheVajs/nurikabe_naloga/tree/main/imgs/screen_shot.png?raw=true)
+![program_screen_shot](https://github.com/TheVajs/nurikabe_naloga/tree/main/imgs/screen_shot.png?raw=true)
+![screen_shot](https://github.com/user-attachments/assets/11ae8539-8a89-4401-8dfe-88674b96726b)
+
 
 # Nurikabe Assigment OM
 
