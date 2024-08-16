@@ -2,6 +2,7 @@
 
 ![program_screen_shot](https://github.com/TheVajs/nurikabe_naloga/tree/main/imgs/screen_shot.png?raw=true)
 ![screen_shot](https://github.com/user-attachments/assets/11ae8539-8a89-4401-8dfe-88674b96726b)
+![Screenshot_20240817_014309](https://github.com/user-attachments/assets/cc8fed64-f17d-4664-9b59-1c528fa183e8)
 
 <br />
 
