@@ -459,7 +459,7 @@ impl Solver for AntSolver {
                     match self
                         .islands
                         .iter()
-                        .find(|r| i == r.pos.0 * self.solution.height + r.pos.1)
+                        .find(|r| i == r.pos.0 * self.solution.width + r.pos.1)
                     {
                         Some(island) => island.final_size as i32,
                         None => WHITE,
