@@ -34,15 +34,48 @@
           <h5>Properties Ant Colony:</h5>
           <form action="/nurikabe_options">
             <label for="ants">Ants:</label>
-            <input type="number" id="ants" name="ants" /><br />
+            <input
+              type="number"
+              id="ants"
+              name="ants"
+              min="0"
+              max="100"
+            /><br />
             <label for="max_iter">Max iterations:</label>
-            <input type="number" id="max_iter" name="max_iter" /><br />
+            <input
+              type="number"
+              id="max_iter"
+              name="max_iter"
+              step="1000"
+              min="0"
+            /><br />
             <label for="local">Local evaporation:</label>
-            <input type="number" id="local" name="local" /><br />
+            <input
+              type="number"
+              id="local"
+              name="local"
+              step=".01"
+              min="0"
+              max="1"
+            /><br />
             <label for="global">Global evaporation:</label>
-            <input type="number" id="global" name="global" /><br />
+            <input
+              type="number"
+              id="global"
+              name="global"
+              step=".01"
+              min="0"
+              max="1"
+            /><br />
             <label for="greedy">Greedy (0.0-1.0):</label>
-            <input type="number" id="greedy" name="greedy" /><br />
+            <input
+              type="number"
+              id="greedy"
+              name="greedy"
+              step=".05"
+              min="0"
+              max="1"
+            /><br />
           </form>
         </div>
         <div style="margin: 5px">
