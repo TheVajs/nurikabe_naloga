@@ -7,6 +7,20 @@ pub mod nurikabe;
 pub mod solvers;
 pub mod test;
 
+// WASM test.
+
+#[wasm_bindgen]
+extern "C" {
+    fn alert(s: &str);
+}
+
+#[wasm_bindgen]
+pub fn greet(name: &str) {
+    alert(&format!("Hello, {}!", name));
+}
+
+// Code
+
 #[wasm_bindgen]
 pub fn load(input: &str) -> Result<JsValue, String> {
     let nurikabe: Nurikabe = load_nurikabe(input)
@@ -16,7 +30,7 @@ pub fn load(input: &str) -> Result<JsValue, String> {
     Ok(result)
 }
 
-#[wasm_bindgen(module = "/js/view.js")]
+#[wasm_bindgen(module = "/view.js")]
 extern "C" {
     fn view_nurikabe(nurikabe: JsValue);
 
@@ -62,8 +76,8 @@ pub async fn ant_colony_optimization(
     ants: usize,
     l_evap: f64,
     g_evap: f64,
-	greedines: f64,
-	max_iter: usize,
+    greedines: f64,
+    max_iter: usize,
     start_evap: f64,
 ) -> Result<bool, String> {
     let nurikabe: Nurikabe = load_nurikabe(input)
@@ -75,7 +89,7 @@ pub async fn ant_colony_optimization(
     // let refresh_rate = 100;
     let mut step = Step::CannotProceed;
 
-    on_begin();
+        on_begin();
 
     while solver.get_iteration() < max_iter {
         step = solver.solve();
@@ -89,9 +103,14 @@ pub async fn ant_colony_optimization(
         }
     }
 
-    view_nurikabe(solver.get_state());
+        view_nurikabe(solver.get_state());
 
-    on_finished();
+        on_finished();
 
     Ok(step == Step::SolutionFound)
+}
+
+pub fn set_panic_hook() {
+    #[cfg(feature = "console_error_panic_hook")]
+    console_error_panic_hook::set_once();
 }

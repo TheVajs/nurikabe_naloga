@@ -4,20 +4,16 @@
     <meta charset="utf-8" />
     <title>Nurikabe</title>
     <link rel="stylesheet" href="style.css" />
-    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon" />
+    <link rel="shortcut icon" href="data:image/x-icon;" type="image/x-icon" />
     <script type="module">
-      import { on_mouse_move } from "./js/mouse.js";
+      import { on_mouse_move } from "./mouse.js";
       import {
         on_board_click,
         get_board_squares,
         view_nurikabe,
         enable_last_modifiable,
-      } from "./js/view.js";
-      import init, {
-        load,
-        solve,
-        ant_colony_optimization,
-      } from "./pkg/nurikabe.js";
+      } from "./view.js";
+      import init, { load, solve, ant_colony_optimization } from "./pkg/nurikabe.js";
 
       await init();
 

@@ -6,8 +6,6 @@ use std::{
 
 use wasm_bindgen::JsValue;
 
-use crate::console_log;
-
 use super::*;
 
 #[derive(Debug)]
@@ -225,7 +223,7 @@ impl NaiveSolver {
                     && self.grid[x][y + 1].as_ref().borrow().is_black()
                     && self.grid[x + 1][y + 1].as_ref().borrow().is_black()
                 {
-                    console_log!("Contradiction: Pool detected!");
+                    // console_log!("Contradiction: Pool detected!");
                     return true;
                 }
             }
@@ -241,16 +239,16 @@ impl NaiveSolver {
             match region.state {
                 State::Island(size) => {
                     if region.size() > size as usize {
-                        console_log!("Contradiction: Island with to many white cells.");
+                        // console_log!("Contradiction: Island with to many white cells.");
                         return true;
                     }
                 }
                 State::White => {
                     // Region is marked white but not an island. Can they still connect?
                     if self.is_white_region_to_big(region.size()) {
-                        console_log!(
-                            "Contradiction: White region that can't be connected to any remaining island."
-                        );
+                        // console_log!(
+                        //     "Contradiction: White region that can't be connected to any remaining island."
+                        // );
                         return true;
                     }
                 }
@@ -265,12 +263,12 @@ impl NaiveSolver {
         }
 
         if num_black > self.num_black_cells {
-            console_log!("Contradiction: To many black cells.");
+            // console_log!("Contradiction: To many black cells.");
             return true;
         }
 
         if num_white > (self.width * self.height) - self.num_black_cells {
-            console_log!("Contradiction: To many white cells.");
+            // console_log!("Contradiction: To many white cells.");
             return true;
         }
 
@@ -367,7 +365,7 @@ impl NaiveSolver {
     fn solve_potential_pools(&mut self) -> bool {
         let mut mark_white = BTreeSet::new();
 
-        console_log!("Start solving potential pools");
+        // console_log!("Start solving potential pools");
 
         for x in 0..self.height - 1 {
             for y in 0..self.width - 1 {
@@ -524,7 +522,7 @@ impl NaiveSolver {
         }
 
         if self.verbose {
-            console_log!("{}", explenation);
+            // console_log!("{}", explenation);
             self.explenation = String::from(explenation);
         }
 
@@ -535,7 +533,7 @@ impl NaiveSolver {
         match state {
             State::Black | State::White => {
                 if self.sample(x, y).is_known() {
-                    console_log!("Contradiction: can only mark unknown cells.");
+                    // console_log!("Contradiction: can only mark unknown cells.");
                     self.step = Step::Contradiction;
                     return;
                 }
@@ -552,7 +550,7 @@ impl NaiveSolver {
                     self.fuse_region((x, y), (a, b))
                 });
             }
-            _ => console_log!("Mark: Logical error, must be white or black"),
+            _ => (), // console_log!("Mark: Logical error, must be white or black"),
         }
     }
 
@@ -619,7 +617,7 @@ impl Solver for NaiveSolver {
 
         if self.known() == self.width * self.height {
             if self.contradictions() {
-                console_log!("Contradiction in final result");
+                // console_log!("Contradiction in final result");
                 return Step::Contradiction;
             }
 
@@ -642,9 +640,9 @@ impl Solver for NaiveSolver {
         }
 
         if self.verbose {
-            console_log!("Known: {}", self.known());
-            console_log!("size: {}", self.height * self.width);
-            console_log!("num black: {}", self.num_black_cells);
+            // console_log!("Known: {}", self.known());
+            // console_log!("size: {}", self.height * self.width);
+            // console_log!("num black: {}", self.num_black_cells);
             self.explenation = format!("Known: {}/{}", self.known(), self.width * self.height);
         }
 
@@ -655,7 +653,6 @@ impl Solver for NaiveSolver {
         let mut data = Vec::with_capacity(self.width * self.height);
         for x in 0..self.height {
             for y in 0..self.width {
-                // console_log!("{:?}", &self.grid[x][y]);
                 data.push(self.sample_value(x, y));
             }
         }
