@@ -5,51 +5,23 @@ async function run_wasm() {
 
   console.log("Run startup!");
 
-  class nurikabeapp {
-    static async from_file(path) {
-      let nurikabe = {};
+  async function from_file(path) {
+    let nurikabe = {};
 
-      await fetch(path)
-        .then((res) => res.text())
-        .then((raw_input) => {
-          nurikabe = load(raw_input);
-          nurikabe.raw_input = raw_input;
-          nurikabe.path = path;
-          nurikabe.time = 0;
-          nurikabe.iteration = 0;
-          nurikabe.solved = false;
-        })
-        .catch((e) => console.error(e));
+    await fetch(path)
+      .then((res) => res.text())
+      .then((raw_input) => {
+        nurikabe = load(raw_input);
+        nurikabe.raw_input = raw_input;
+        nurikabe.path = path;
+        nurikabe.duration = 1;
+        nurikabe.iteration = 0;
+        nurikabe.solved = false;
+      })
+      .catch((e) => console.error(e));
 
-      return nurikabe;
-    }
-
-    static async start_solver(raw_input) {
-      console.clear();
-      window.previous = null;
-
-      let properties = get_properties();
-      console.log(properties);
-      // if (properties.method == "ants") {
-      //   let start_evap = 1.0 / (nurikabe.width * nurikabe.height);
-
-      //   ant_colony_optimization(
-      //     raw_input,
-      //     properties.ant,
-      //     properties.local,
-      //     properties.global,
-      //     properties.greedines,
-      //     properties.max_iter,
-      //     start_evap
-      //   );
-      // } else if (properties.method == "rules") {
-      //   window.previous_coloring = false;
-      //   solve(raw_input);
-      // }
-    }
+    return nurikabe;
   }
-
-  window.nurikabe_app = nurikabeapp;
 
   window.enable_clicking = (id) => {
     let obj = document.getElementById(id);
@@ -68,12 +40,11 @@ async function run_wasm() {
   };
 
   async function update(path) {
-    // Clear grid.
     let grid = document.getElementById("nurikabe");
     grid.innerHTML = "";
 
     // Update state.
-    let nurikabe = await window.nurikabe_app.from_file(path);
+    let nurikabe = await from_file(path);
     window.nurikabe = nurikabe;
     window.previous = null;
     view_nurikabe(nurikabe);
@@ -82,16 +53,21 @@ async function run_wasm() {
     enable_last_modifiable();
   }
 
+  async function restart_board(_e) {
+    window.method = document.getElementById("method").value;
+    document.getElementById("nurikabe").innerHTML = "";
+    view_nurikabe(window.nurikabe);
+  }
+
   // ===========================
-  // render
+  // Default nurikabe grid.
   // ===========================
 
   let path = "./data/nurikabe10x10v1.csv";
-  let nurikabe = await window.nurikabe_app.from_file(path);
   await update(path);
 
   // ===========================
-  // set event listeners
+  // Set event listeners.
   // ===========================
 
   let file_selector = document.getElementById("file_selector");
@@ -103,43 +79,18 @@ async function run_wasm() {
     await update(path);
   };
 
-  let btn_solve = document.getElementById("solve");
-  btn_solve.onclick = async () => {
-    if (window.nurikabe && !window.solving) {
-      window.nurikabe_app.start_solver(window.nurikabe.raw_input);
-    }
-  };
-
-  // ===========================
-  // set event listeners
-  // ===========================
-
-  function set_method(e) {
-    console.clear();
-    document.getElementById("nurikabe").innerHTML = "";
-    view_nurikabe(window.nurikabe);
-  }
-
-  function get_properties() {
-    var e = document.getElementById("method");
-    var value = e.value;
-    // var text = e.options[e.selectedIndex].text;
-
-    return {
-      ant: parseInt(document.getElementById("ants").value),
-      max_iter: parseInt(document.getElementById("max_iter").value),
-      local: parseFloat(document.getElementById("local").value),
-      global: parseFloat(document.getElementById("global").value),
-      greedines: parseFloat(document.getElementById("greedy").value),
-      method: value,
-    };
-  }
-
-  document.getElementById("method").onchange = set_method;
+  window.method = "ants";
+  document.getElementById("method").value = "ants";
+  document.getElementById("method").onchange = restart_board;
   document.getElementById("ants").value = 10;
   document.getElementById("max_iter").value = 1000;
   document.getElementById("local").value = 0.1;
   document.getElementById("global").value = 0.2;
+  document.getElementById("greedy").value = 0.9;
+
+  // ===========================
+  // Call WASM.
+  // ===========================
 
   startup();
 }

@@ -133,11 +133,6 @@ function view_nurikabe(nurikabe) {
   grid_parent.appendChild(grid);
   parent.appendChild(grid_parent);
 
-  let duration = 0;
-  if (window.start_time) {
-    duration = performance.now() - window.start_time;
-  }
-
   // Update properties
   let properties = document.getElementById("properties");
   properties.innerHTML = `
@@ -145,30 +140,24 @@ function view_nurikabe(nurikabe) {
 				<i>Dims:</i> ${nurikabe.width} x ${nurikabe.height} <br/>
 				<i>Solved:</i> <b>${nurikabe.solved}</b> <br/>
 				<i>Iteration:</i> <b>${nurikabe.iteration}</b> <br/>
-				<i>Time:</i> ${duration} ms<br/>
+				<i>Time:</i> ${0} ms<br/>
 				<br/>
 			`;
-
-  // scroll_down();
 
   window.previous = nurikabe;
 }
 
 function on_begin() {
   window.solving = true;
+
   window.start_time = performance.now();
 
   document.getElementById("nurikabe").innerHTML = "";
-
-  // view_nurikabe(Object.create(window.nurikabe));
 }
 
 function on_finished() {
-  console.log("finished solving!");
-
   window.solving = false;
 
-  // scroll_down();
   enable_last_modifiable();
 }
 

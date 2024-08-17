@@ -2,23 +2,24 @@
 
 // This worker.js is called from WASM.
 
-importScripts('./pkg/nurikabe.js');
+importScripts("./pkg/nurikabe.js");
 
 const { NurikabeApp } = wasm_bindgen;
 
 async function init_wasm_in_worker() {
   await wasm_bindgen("./pkg/nurikabe_bg.wasm");
 
-  var app = NurikabeApp.new(0);
-  // Perserve state between calls.
+  var app = NurikabeApp.new();
 
+  // Do heavy work in separate thread.
   self.onmessage = async (event) => {
-    // Do heavy work in separate thread.
+    let properties = event.data;
 
-    var worker_result = app.is_even(event.data);
+    let start_time = performance.now();
+    let nurikabe = app.start_solver(properties);
+    nurikabe.duration = parseInt(performance.now() - start_time);
 
-    // Send back to main thread to update view.
-    self.postMessage(worker_result);
+    self.postMessage(nurikabe);
   };
 }
 

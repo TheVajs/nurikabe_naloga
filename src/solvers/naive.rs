@@ -668,6 +668,7 @@ impl Solver for NaiveSolver {
             height: self.height,
             solved: self.solved,
             iteration: self.iteration,
+			duration: 0,
             data,
             verbose,
         })

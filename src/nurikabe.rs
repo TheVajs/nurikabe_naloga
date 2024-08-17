@@ -1,12 +1,13 @@
 use serde::*;
 
-#[derive(Default, Serialize, Deserialize, Debug)]
+#[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct Nurikabe {
     pub width: usize,
     pub height: usize,
     pub solved: bool,
     pub iteration: usize,
     pub data: Vec<i32>,
+	pub duration: usize,
     pub verbose: String,
 }
 
@@ -18,6 +19,7 @@ impl Nurikabe {
             solved: false,
             iteration: 0,
             data,
+			duration: 0,
             verbose: String::from(""),
         }
     }

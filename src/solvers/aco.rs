@@ -476,6 +476,7 @@ impl Solver for AntSolver {
             solved: self.solution.is_solved(),
             iteration: self.iteration,
             data,
+			duration: 0,
             verbose,
         })
         .unwrap()

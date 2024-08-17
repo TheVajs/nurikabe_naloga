@@ -1,0 +1,20 @@
+{
+  "name": "nurikabe",
+  "collaborators": [
+    "Simon Vajs"
+  ],
+  "description": "Nurikabe is awesome!",
+  "version": "0.1.0",
+  "license": "None",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheVajs/nurikabe_naloga/tree/main?tab=readme-ov-file"
+  },
+  "files": [
+    "nurikabe_bg.wasm",
+    "nurikabe.js",
+    "nurikabe.d.ts"
+  ],
+  "browser": "nurikabe.js",
+  "types": "nurikabe.d.ts"
+}
