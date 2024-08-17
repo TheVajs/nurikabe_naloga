@@ -4,7 +4,7 @@
  * @param {*} id
  * @returns
  */
-export function get_board_squares(id) {
+function get_board_squares(id) {
   let rows = document.getElementById(id).children;
 
   let rects = [];
@@ -21,7 +21,7 @@ export function get_board_squares(id) {
  * @param {Event} e
  * @returns none
  */
-export function on_board_click(_e, id) {
+function on_board_click(_e, id) {
   if (!window.mouse_pos) {
     return;
   }
@@ -63,25 +63,6 @@ export function on_board_click(_e, id) {
   }
 }
 
-/**
- * Clear all clicked on board rectangels.
- *
- * @param {Event} e
- * @returns none
- */
-function on_click_clear(e) {
-  // let squares = window.nurikabe_board_squares;
-  let squares = get_board_squares(ID_BOARD);
-  if (!squares || squares.length <= 0) {
-    console.warn("No boards squares");
-    return;
-  }
-
-  for (let i = 0; i < squares.length; i++) {
-    squares[i].style.backgroundColor = "white";
-  }
-}
-
 // ===========================
 // Update HTML
 // ===========================
@@ -93,7 +74,7 @@ function on_click_clear(e) {
  * @param {} option
  * @returns
  */
-export function view_nurikabe(nurikabe) {
+function view_nurikabe(nurikabe) {
   let previous = window.previous ? window.previous : nurikabe;
   let parent = document.getElementById("nurikabe");
 
@@ -173,7 +154,7 @@ export function view_nurikabe(nurikabe) {
   window.previous = nurikabe;
 }
 
-export function on_begin() {
+function on_begin() {
   window.solving = true;
   window.start_time = performance.now();
 
@@ -182,7 +163,7 @@ export function on_begin() {
   // view_nurikabe(Object.create(window.nurikabe));
 }
 
-export function on_finished() {
+function on_finished() {
   console.log("finished solving!");
 
   window.solving = false;
@@ -195,40 +176,8 @@ function scroll_down() {
   window.scrollTo(0, document.body.scrollHeight);
 }
 
-export function enable_last_modifiable() {
+function enable_last_modifiable() {
   let last = document.getElementById("nurikabe").lastChild.lastChild;
   last.id = "grid";
   window.enable_clicking("grid");
-}
-
-// ===========================
-// Test
-// ===========================
-
-export class Nurikabe {
-  constructor() {
-    this._width = 0;
-    this._height = 0;
-    this._values = [];
-  }
-
-  get width() {
-    return this._width;
-  }
-
-  set width(width) {
-    return (this._width = width);
-  }
-
-  get height() {
-    return this._height;
-  }
-
-  set height(heigth) {
-    return (this._height = heigth);
-  }
-
-  render() {
-    return `${this._width} x ${this._height}`;
-  }
 }

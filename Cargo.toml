@@ -1,18 +1,21 @@
 [package]
 name = "nurikabe"
+authors = ["Simon Vajs"]
 version = "0.1.0"
 edition = "2021"
+description = "Nurikabe is awesome!"
+repository = "https://github.com/TheVajs/nurikabe_naloga/tree/main?tab=readme-ov-file"
+license = "None"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-console_error_panic_hook = { version = "0.1.7", optional = true }
+wasm-bindgen = "0.2"
+getrandom = { version = "0.2", features = ["js"] }
 serde = { version = "1.0", features = ["derive"] }
 serde-wasm-bindgen = "0.4"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4.43"
-getrandom = { version = "0.2", features = ["js"] }
+console_error_panic_hook = { version = "0.1.7", optional = true }
 
 [profile.release]
 lto = true
@@ -20,3 +23,15 @@ opt-level = 3
 
 [features]
 default = ["console_error_panic_hook"]
+
+[dependencies.web-sys]
+version = "0.3.61"
+features = [
+    'console',
+    'Document',
+    'HtmlElement',
+    'HtmlInputElement',
+    'MessageEvent',
+    'Window',
+    'Worker',
+]

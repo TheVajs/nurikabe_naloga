@@ -5,7 +5,7 @@
  *
  * @param {Event} e
  */
-export function on_mouse_move(e, obj) {
+function on_mouse_move(e, obj) {
   var m_posx = 0;
   var m_posy = 0;
   var e_posx = 0;
