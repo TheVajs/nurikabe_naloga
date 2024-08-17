@@ -23,8 +23,7 @@ pub fn greet(name: &str) {
 
 #[wasm_bindgen]
 pub fn load(input: &str) -> Result<JsValue, String> {
-    let nurikabe: Nurikabe = load_nurikabe(input)
-        .map_err(|report| format!("Make shour the data is correctly formatted!\n {}", report))?;
+    let nurikabe: Nurikabe = load_nurikabe(input)?;
 
     let result = serde_wasm_bindgen::to_value(&nurikabe).map_err(|error| format!("{}", error))?;
     Ok(result)
@@ -41,8 +40,7 @@ extern "C" {
 
 #[wasm_bindgen]
 pub fn solve(input: &str) -> Result<bool, String> {
-    let nurikabe: Nurikabe = load_nurikabe(input)
-        .map_err(|report| format!("Make shour the data is correctly formatted!\n {}", report))?;
+    let nurikabe: Nurikabe = load_nurikabe(input)?;
 
     let mut solver = NaiveSolver::new(nurikabe);
     solver.verbose = true;
@@ -86,26 +84,21 @@ pub async fn ant_colony_optimization(
     let mut solver = AntSolver::new(ants, l_evap, g_evap, start_evap, greedines, nurikabe);
     solver.verbose = true;
 
-    // let refresh_rate = 100;
     let mut step = Step::CannotProceed;
 
-        on_begin();
+    on_begin();
 
     while solver.get_iteration() < max_iter {
         step = solver.solve();
-
-        // if solver.get_iteration() % refresh_rate == 0{
-        //     view_nurikabe(solver.get_state());
-        // }
 
         if step != Step::Proceed {
             break;
         }
     }
 
-        view_nurikabe(solver.get_state());
+    view_nurikabe(solver.get_state());
 
-        on_finished();
+    on_finished();
 
     Ok(step == Step::SolutionFound)
 }

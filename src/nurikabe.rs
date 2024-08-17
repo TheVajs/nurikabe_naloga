@@ -23,11 +23,11 @@ impl Nurikabe {
     }
 }
 
-pub fn load_nurikabe(input: &str) -> color_eyre::Result<Nurikabe> {
+pub fn load_nurikabe(input: &str) -> Result<Nurikabe, String> {
     let mut width: usize = 0;
     let mut height: usize = 0;
 
-	const UNKNOWN: i32 = -3;
+    const UNKNOWN: i32 = -3;
 
     let input = input
         .lines()
@@ -48,7 +48,8 @@ pub fn load_nurikabe(input: &str) -> color_eyre::Result<Nurikabe> {
 
             values
         })
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|report| format!("Make shour the data is correctly formatted!\n {}", report))?;
 
     Ok(Nurikabe::new(width, height, input.concat()))
 }

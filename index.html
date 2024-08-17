@@ -13,7 +13,11 @@
         view_nurikabe,
         enable_last_modifiable,
       } from "./view.js";
-      import init, { load, solve, ant_colony_optimization } from "./pkg/nurikabe.js";
+      import init, {
+        load,
+        solve,
+        ant_colony_optimization,
+      } from "./pkg/nurikabe.js";
 
       await init();
 
@@ -194,25 +198,6 @@
             <label for="greedy">Greedy (0.0-1.0):</label>
             <input type="number" id="greedy" name="greedy" /><br />
           </form>
-          <div
-            style="
-              margin: 6px;
-              border-radius: 4px;
-              width: 280px;
-              font-size: 0.85em;
-              background-color: rgba(255, 46, 106, 0.141);
-            "
-          >
-            <p
-              style="text-align: justify; padding: 10px; color: rgb(64, 64, 78)"
-            >
-              Bolj je mravlja požrešna, manj naključni je rezultat. Problem
-              'nurikabe10x10v1.csv' se reši, če je ta vrednos bližje 0.5
-              hitreje. Nekateri drugi večji problemi se tudi dajo rešit z več
-              iteracij in manjšo požrešnostjo mravelj. Pri večini primerih pa
-              zgleda boljša višja vrednost, proti 0.9 (tako kot je v članku).
-            </p>
-          </div>
         </div>
         <div style="margin: 5px">
           <button
@@ -223,6 +208,26 @@
             Load nurikabe
           </button>
           <button id="solve" class="button-6" role="button">Solve</button>
+          <div class="note">
+            <h6>Opomba:</h6>
+            <p>
+              Bolj je mravlja požrešna, manj naključni je rezultat. Problem
+              'nurikabe10x10v1.csv' se reši, če je ta vrednos bližje 0.5
+              hitreje. Nekateri drugi večji problemi se tudi dajo rešit z več
+              iteracij in manjšo požrešnostjo mravelj. Pri večini primerih pa
+              zgleda boljša višja vrednost, proti 0.9 (tako kot je v članku).
+            </p>
+          </div>
+          <div class="note">
+            <h6>Opomba:</h6>
+            <p>
+              Pri testiranju na drugem računalniku, mi je 5x hitreje izvedlo
+              algoritem v Chromu (testirano na Windows). No mojem glavnem
+              računalniku pa uporabljam linux in testiral večino na Firefox, pa
+              nisem upazil tako velike razlike med brskalnikama. Probajte v več
+              brskalnikih.
+            </p>
+          </div>
         </div>
       </div>
     </section>
