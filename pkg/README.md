@@ -36,16 +36,25 @@ Video: https://www.youtube.com/watch?v=nW71Mlbmxt8&ab_channel=AustinCrim<br />
 link: https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_Wasm<br />
 
 
-## Run the program/web page
+# Run web page
 
-### With visual studio code
+## With python
+
+1. Install newest version of python (has to be python3),
+
+https://www.python.org/downloads/
+
+3. Open bash/cmd in the root directory (`/nurikabe_naloga`),
+2. And now there are two options,
+- run command: `python -m http.server 8080` or `python3 -m http.server 8080` (but it seem to not work on Windows 11 for me)
+- run command: `python run_server.py` or `python3 run_server.py`. This is a simple script that's included in the repo. Runs a simple local web server, similira to the first command. (tested on Windows 11 and  Linux, seem to work fine). 
+4. Now the site is available with <a href="http://localhost:8080">http://localhost:8080</a> or <a href="http://127.0.0.1:8080">http://127.0.0.1:8080</a>.
+
+## With visual studio code
 
 Install Extension
 
 https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer
 
 and then right click on `index.html` in the root directory and click "Open with Live Server"
-
-### With npm
-
 

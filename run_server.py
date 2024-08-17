@@ -7,9 +7,9 @@ def run():
     Handler.extensions_map = {"": "text/plain"}
     Handler.extensions_map = {".js": "application/x-javascript"}
 
-    print("Runing on: http://127.0.0.1:8000")
+    print("Runing on: http://127.0.0.1:8080")
 
-    with TCPServer(("127.0.0.1", 8000), Handler) as httpd:
+    with TCPServer(("127.0.0.1", 8080), Handler) as httpd:
         httpd.serve_forever()
 
 
