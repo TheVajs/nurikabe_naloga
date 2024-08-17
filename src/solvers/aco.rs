@@ -27,7 +27,7 @@ fn random_int(range: Range<usize>) -> usize {
 }
 
 fn random_float() -> f64 {
-    get_random_buf().expect("Random")[0] as f64 / (255.0 + 1e-13)
+    get_random_buf().expect("Random")[0] as f64 / (255.1)
 }
 
 fn get_random_buf() -> Result<[u8; 1], getrandom::Error> {
@@ -227,6 +227,7 @@ impl Grid {
 
 #[derive(Debug)]
 pub struct AntSolver {
+	path: String,
     ants: usize,
     l_evap: f64,
     g_evap: f64,
@@ -290,6 +291,7 @@ impl AntSolver {
             .collect::<Vec<Vec<f64>>>();
 
         Self {
+			path: nurikabe.path,
             ants,
 			evap: evap.clamp(0.0, 1.0), 
 			l_evap: local_evap.clamp(0.0, 1.0), 
@@ -471,6 +473,7 @@ impl Solver for AntSolver {
             .collect();
 
         serde_wasm_bindgen::to_value(&Nurikabe {
+			path: self.path.clone(),
             width: self.solution.width,
             height: self.solution.height,
             solved: self.solution.is_solved(),

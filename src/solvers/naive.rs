@@ -83,6 +83,7 @@ impl Region {
 
 #[derive(Debug)]
 pub struct NaiveSolver {
+	path: String,
     width: usize,
     height: usize,
     grid: Vec<Vec<Rc<RefCell<Region>>>>,
@@ -137,6 +138,7 @@ impl NaiveSolver {
         }
 
         Self {
+			path: nurikabe.path,
             width,
             height,
             grid,
@@ -664,6 +666,7 @@ impl Solver for NaiveSolver {
         };
 
         serde_wasm_bindgen::to_value(&Nurikabe {
+			path: self.path.clone(),
             width: self.width,
             height: self.height,
             solved: self.solved,

@@ -2,6 +2,7 @@ use serde::*;
 
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]
 pub struct Nurikabe {
+	pub path: String,
     pub width: usize,
     pub height: usize,
     pub solved: bool,
@@ -14,6 +15,7 @@ pub struct Nurikabe {
 impl Nurikabe {
     pub fn new(width: usize, height: usize, data: Vec<i32>) -> Self {
         Nurikabe {
+			path: String::from(""),
             width,
             height,
             solved: false,

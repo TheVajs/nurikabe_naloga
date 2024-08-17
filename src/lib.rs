@@ -34,13 +34,15 @@ pub fn load(input: &str) -> Result<JsValue, String> {
 
 #[wasm_bindgen]
 pub struct NurikabeApp {
-    previous: Option<Nurikabe>,
+    // previous: Option<Nurikabe>,
 }
 
 #[wasm_bindgen]
 impl NurikabeApp {
     pub fn new() -> Self {
-        Self { previous: None }
+        Self { 
+			// previous: None
+		}
     }
 
     /// Do work in separate thread.
@@ -55,10 +57,10 @@ impl NurikabeApp {
             method => Err(format!("Not implemented method: {}", &method)),
         };
 
-        self.previous = result
-            .clone()
-            .ok()
-            .map(|v| v.into_serde::<Nurikabe>().unwrap());
+        // self.previous = result
+        //     .clone()
+        //     .ok()
+        //     .map(|v| v.into_serde::<Nurikabe>().unwrap());
 
 		result
     }
@@ -102,7 +104,8 @@ impl NurikabeApp {
             }
         }
 
-        solver.get_state()
+		solver.get_state()
+
     }
 }
 
@@ -286,13 +289,13 @@ fn view_nurikabe(nurikabe: Nurikabe) {
     // Update properties
     let properties = document.get_element_by_id("properties").unwrap();
     properties.set_inner_html(&format!(
-        "<i>File:</i> <br/>
+        "<i>File:</i> {} <br/>
 		<i>Dims:</i> {} x {} <br/>
 		<i>Solved:</i> <b>{}</b> <br/>
 		<i>Iteration:</i> <b>{}</b> <br/>
 		<i>Time:</i> {} ms<br/>
 		<br/>",
-        nurikabe.width, nurikabe.height, nurikabe.solved, nurikabe.iteration, nurikabe.duration
+        nurikabe.path, nurikabe.width, nurikabe.height, nurikabe.solved, nurikabe.iteration, nurikabe.duration
     ));
     // todo, add to window.
 }
