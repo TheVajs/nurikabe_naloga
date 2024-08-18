@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use gloo_utils::format::JsValueSerdeExt;
 use nurikabe::{load_nurikabe, Nurikabe};
 use serde::{Deserialize, Serialize};
-use solvers::{aco::AntSolver, NaiveSolver, Solver, Step};
+use solvers::{aco::AntSolver, random_ant::RandomAntSolver, NaiveSolver, Solver, Step};
 use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, HtmlInputElement, MessageEvent, Worker};
 
@@ -21,7 +21,6 @@ pub struct Properties {
     g_evap: f64,
     greedines: f64,
     max_iter: usize,
-    start_evap: f64,
 }
 
 #[wasm_bindgen]
@@ -53,6 +52,7 @@ impl NurikabeApp {
 
         let result = match &properties.method[..] {
             "rules" => Ok(NurikabeApp::rule_solver(properties)),
+            "rand_ants" => Ok(NurikabeApp::random_ant(properties)),
             "ants" => Ok(NurikabeApp::ant_colony_optimization(properties)),
             method => Err(format!("Not implemented method: {}", &method)),
         };
@@ -82,6 +82,26 @@ impl NurikabeApp {
         solver.get_state()
     }
 
+    fn random_ant(properties: Properties) -> JsValue {
+        let Properties {
+            nurikabe,
+            ants,
+            ..
+        } = properties;
+
+        let mut solver = RandomAntSolver::new(ants, nurikabe);
+        solver.verbose = true;
+
+        while solver.get_iteration() < properties.max_iter {
+            if solver.solve() != Step::Proceed {
+                break;
+            }
+        }
+
+		solver.get_state()
+
+    }
+
     fn ant_colony_optimization(properties: Properties) -> JsValue {
         let Properties {
             nurikabe,
@@ -89,10 +109,10 @@ impl NurikabeApp {
             l_evap,
             g_evap,
             greedines,
-            start_evap,
             ..
         } = properties;
 
+		let start_evap = 1.0 / (nurikabe.width * nurikabe.height) as f64;
         let mut solver = AntSolver::new(ants, l_evap, g_evap, start_evap, greedines, nurikabe);
         solver.verbose = true;
 
@@ -241,6 +261,7 @@ fn view_nurikabe(nurikabe: Nurikabe) {
 
     let grid = document.create_element("div").unwrap();
     grid.set_class_name("grid");
+    grid.set_id("grid");
 
     for i in 0..height {
         let row = document.create_element("div").unwrap();

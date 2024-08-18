@@ -26,6 +26,7 @@
           <form>
             <select name="method" id="method">
               <option value="ants">Ant Colony Optimization</option>
+              <option value="rand_ants">Random Ant</option>
               <option value="rules">Rules</option>
             </select>
           </form>
@@ -38,7 +39,7 @@
               type="number"
               id="ants"
               name="ants"
-              min="0"
+              min="1"
               max="100"
             /><br />
             <label for="max_iter">Max iterations:</label>
@@ -46,7 +47,7 @@
               type="number"
               id="max_iter"
               name="max_iter"
-              step="1000"
+              step="500"
               min="0"
             /><br />
             <label for="local">Local evaporation:</label>

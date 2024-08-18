@@ -63,7 +63,7 @@ async function run_wasm() {
   // Default nurikabe grid.
   // ===========================
 
-  let path = "./data/nurikabe10x10v1.csv";
+  let path = "./data/nurikabe10x10v2.csv";
   await update(path);
 
   // ===========================
@@ -83,7 +83,7 @@ async function run_wasm() {
   document.getElementById("method").value = "ants";
   document.getElementById("method").onchange = restart_board;
   document.getElementById("ants").value = 10;
-  document.getElementById("max_iter").value = 1000;
+  document.getElementById("max_iter").value = 5000;
   document.getElementById("local").value = 0.1;
   document.getElementById("global").value = 0.2;
   document.getElementById("greedy").value = 0.9;

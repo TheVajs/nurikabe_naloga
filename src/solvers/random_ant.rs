@@ -65,11 +65,6 @@ impl Grid {
     /// (DFS) check is returned.
     ///
     fn is_river_frgmented(&mut self, x: usize, y: usize, island_id: i32) -> bool {
-        // console_log!("Is cut? {:?} for island {}", (x, y), island_id);
-
-        // TODO problem, currently there are still some test made that are
-        // not necessary.
-
         if let Some(start) = self.creates_wall_cut(x, y) {
             // Set white.
             self.cells[x][y] = island_id;
@@ -77,18 +72,13 @@ impl Grid {
             let num_black_cells = self.height * self.width - self.reached_white - 1;
             let reached_black_cells = self.dfs(start);
 
-            // console_log!(
-            //     "{}, {}, {}",
-            //     reached_black_cells,
-            //     num_black_cells,
-            //     self.reached_white
-            // );
+            // console_log!("{}, {}, {}", reached_black_cells, num_black_cells, self.reached_white);
             let in_fragments = reached_black_cells != num_black_cells;
 
+            // console_log!("test");
             // for (i, row) in self.cells.iter().enumerate() {
             //     console_log!("{}= {:.4?}", i, row);
             // }
-            // console_log!("{}", in_fragments);
 
             // Restore.
             self.cells[x][y] = BLACK;
@@ -169,33 +159,11 @@ impl Grid {
         None
     }
 
-    /// Adds valid neighbour to N quee, where based on phermon value the next
-    /// cell is selected.
+    /// Get number of pools, which are 2x2 black cells.
     ///
-    fn add_neighbours(&self, x: usize, y: usize, n: &mut Vec<(usize, usize)>) {
-        let list = [
-            (x, y + 1),
-            (x.wrapping_sub(1), y),
-            (x, y.wrapping_sub(1)),
-            (x + 1, y),
-        ];
-
-		let start = random_int(0..4);
-        for i in 0..4 {
-            let (a, b) = list[(start + i) % 4];
-            if self.valid(a, b) && self.cells[a][b] == BLACK {
-                n.push((a, b));
-            }
-        }
-    }
-
-    #[inline]
-    fn valid(&self, x: usize, y: usize) -> bool {
-        x < self.height && y < self.width
-    }
-
     fn get_num_pools(&self) -> usize {
         let mut num = 0;
+
         for x in 0..self.height - 1 {
             for y in 0..self.width - 1 {
                 if self.cells[x][y] == BLACK
@@ -223,15 +191,9 @@ impl Grid {
 }
 
 #[derive(Debug)]
-pub struct AntSolver {
+pub struct RandomAntSolver {
     path: String,
     ants: usize,
-    l_evap: f64,
-    g_evap: f64,
-    evap: f64,
-    greedines: f64,
-    phermons: Vec<Vec<f64>>,
-
     grid: Grid,
     solution: Grid,
     solution_num_white: usize,
@@ -241,15 +203,8 @@ pub struct AntSolver {
     pub verbose: bool,
 }
 
-impl AntSolver {
-    pub fn new(
-        ants: usize,
-        local_evap: f64,
-        global_evap: f64,
-        evap: f64,
-        greedines: f64,
-        nurikabe: Nurikabe,
-    ) -> Self {
+impl RandomAntSolver {
+    pub fn new(ants: usize, nurikabe: Nurikabe) -> Self {
         let width = nurikabe.width;
         let height = nurikabe.height;
 
@@ -283,18 +238,9 @@ impl AntSolver {
             }
         }
 
-        let phermons = (0..height)
-            .map(|_| (0..width).map(|_| evap).collect())
-            .collect::<Vec<Vec<f64>>>();
-
         Self {
             path: nurikabe.path,
             ants,
-            evap: evap.clamp(0.0, 1.0),
-            l_evap: local_evap.clamp(0.0, 1.0),
-            g_evap: global_evap.clamp(0.0, 1.0),
-            greedines: greedines.clamp(0.0, 1.0),
-            phermons,
             grid: Grid::new(width, height, cells),
             solution: Grid::new(0, 0, vec![vec![]]),
             solution_num_white: num_white,
@@ -306,14 +252,13 @@ impl AntSolver {
     }
 }
 
-impl Solver for AntSolver {
+impl Solver for RandomAntSolver {
     fn solve(&mut self) -> Step {
         for _ in 0..self.ants {
             self.iteration += 1;
 
             let mut islands = self.islands.clone();
             let mut k_grid = self.grid.clone();
-            let mut k_phermons = self.phermons.clone();
 
             k_grid.reached_white = islands.len();
 
@@ -323,43 +268,8 @@ impl Solver for AntSolver {
                 let mut first = true;
 
                 while !queue.is_empty() {
-                    // Phermon strategy.
-
-                    let r = random_float();
-                    let s = if r < self.greedines {
-                        let mut pick = 0.0;
-                        let mut index = 0;
-
-                        for (i, &(a, b)) in queue.iter().enumerate() {
-                            if k_phermons[a][b] > pick {
-                                pick = k_phermons[a][b];
-                                index = i;
-                            }
-                        }
-                        index
-                    } else {
-                        let r = random_float();
-                        let sum: f64 = queue.iter().map(|&(a, b)| k_phermons[a][b]).sum();
-
-                        let mut acc = 0.0;
-                        let accumilate = queue
-                            .iter()
-                            .map(|&(a, b)| {
-                                acc += k_phermons[a][b] / (sum + 1e-10);
-                                acc
-                            })
-                            .collect::<Vec<f64>>();
-
-                        // console_log!("{}, Accum: {:.4?}", sum, accumilate);
-
-                        let last = queue.len() - 1;
-                        accumilate
-                            .into_iter()
-                            .position(|prob| r < prob)
-                            .unwrap_or(last)
-                    };
-
-                    let (x, y) = queue.remove(s);
+                    // Random strategy
+                    let (x, y) = queue.remove(random_int(0..queue.len()));
 
                     if !first {
                         // Check validity of island, skip when:
@@ -377,21 +287,22 @@ impl Solver for AntSolver {
                         k_grid.reached_white += 1;
                     }
 
-                    // Local update of phermon.
-
-                    let p = self.l_evap;
-                    k_phermons[x][y] = (1.0 - p) * k_phermons[x][y] + p * self.evap;
-
                     // Cell is valid. Update the current ant grid.
 
                     k_grid.cells[x][y] = island.id;
-
                     island.size += 1;
+
                     if island.size >= island.final_size {
                         break;
                     }
 
-                    k_grid.add_neighbours(x, y, &mut queue);
+                    // Add neighbours to N list.
+
+                    for_valid_neighbours(k_grid.width, k_grid.height, x, y, |a, b| {
+                        if k_grid.cells[a][b] == BLACK {
+                            queue.push((a, b));
+                        }
+                    });
 
                     first = false;
                 }
@@ -399,7 +310,6 @@ impl Solver for AntSolver {
 
             if k_grid.evaluate(self.solution_num_white) > self.solution.best_p {
                 self.solution.clone_from(&k_grid);
-                self.phermons.clone_from(&k_phermons);
 
                 self.explain = format!("Found current best solution is {}", self.solution.eval);
 
@@ -413,31 +323,7 @@ impl Solver for AntSolver {
             }
         }
 
-        // Global phermon update.
-
-        let p = self.g_evap;
-        let phermon = self.solution.best_p;
-
-        for x in 0..self.grid.height {
-            for y in 0..self.grid.width {
-                if self.solution.cells[x][y] != BLACK {
-                    self.phermons[x][y] = (1.0 - p) * self.phermons[x][y] + p * phermon;
-                }
-            }
-        }
-
-		// let h = random_int(0..self.solution.height);
-		// let w = random_int(0..self.solution.width);
-		// self.phermons[h][w] = 1.0 / (self.solution.height * self.solution.width) as f64; 
-
-        // Best value evaporation.
-        const BVE: f64 = 0.001;
-        self.solution.best_p *= 1.0 - BVE;		
-
-        // console_log!("test");
-        // for (i, row) in self.phermons.iter().enumerate() {
-        //     console_log!("{}= {:.4?}", i, row);
-        // }
+        // No phermons to update.
 
         Step::Proceed
     }
