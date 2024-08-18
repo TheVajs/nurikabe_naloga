@@ -35,4 +35,6 @@ features = [
     'MessageEvent',
     'Window',
     'Worker',
+	'WorkerOptions',
+	'WorkerType'
 ]

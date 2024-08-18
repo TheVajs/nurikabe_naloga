@@ -1,7 +1,7 @@
-const { startup, load } = wasm_bindgen;
+import init, { startup, load } from "./pkg/nurikabe.js";
 
 async function run_wasm() {
-  await wasm_bindgen("./pkg/nurikabe_bg.wasm");
+  await init();
 
   console.log("Run startup!");
 

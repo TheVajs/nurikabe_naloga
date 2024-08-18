@@ -5,7 +5,7 @@ use nurikabe::{load_nurikabe, Nurikabe};
 use serde::{Deserialize, Serialize};
 use solvers::{aco::AntSolver, random_ant::RandomAntSolver, NaiveSolver, Solver, Step};
 use wasm_bindgen::prelude::*;
-use web_sys::{HtmlElement, HtmlInputElement, MessageEvent, Worker};
+use web_sys::{HtmlElement, HtmlInputElement, MessageEvent};
 
 pub mod log;
 pub mod nurikabe;
@@ -129,17 +129,20 @@ impl NurikabeApp {
     }
 }
 
-impl Default for NurikabeApp {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 #[wasm_bindgen]
 pub fn startup() {
     set_panic_hook();
 
-    let worker_handle = Rc::new(RefCell::new(Worker::new("./worker.js").unwrap()));
+	console_log!("WASM Startup");
+
+    // let worker_handle = Rc::new(RefCell::new(Worker::new("./worker.js").expect("Fuck")));
+
+	let worker_options = web_sys::WorkerOptions::new();
+	worker_options.set_type(web_sys::WorkerType::Module);
+	let worker = web_sys::Worker::new_with_options("./worker.js", &worker_options).unwrap();
+    let worker_handle = Rc::new(RefCell::new(worker));
+
+	console_log!("{:?}", &worker_handle);
 
     setup_callbacks(worker_handle);
 }
@@ -207,6 +210,7 @@ fn setup_callbacks(worker: Rc<RefCell<web_sys::Worker>>) {
         properties.method = JsValue::into_serde::<String>(&method).expect("Method!");
 
         // Send to worker.
+		console_log!("Sending to worker");
 
         let worker_handle = &*worker.borrow();
         let _ = worker_handle.post_message(&serde_wasm_bindgen::to_value(&properties).unwrap());
