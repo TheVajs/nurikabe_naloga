@@ -8,7 +8,7 @@ repository = "https://github.com/TheVajs/nurikabe_naloga/tree/main?tab=readme-ov
 license = "None"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"] # , "rlib"]
 
 [dependencies]
 wasm-bindgen = "0.2"

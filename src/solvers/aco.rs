@@ -180,7 +180,7 @@ impl Grid {
             (x + 1, y),
         ];
 
-		let start = random_int(0..4);
+        let start = random_int(0..4);
         for i in 0..4 {
             let (a, b) = list[(start + i) % 4];
             if self.valid(a, b) && self.cells[a][b] == BLACK {
@@ -426,13 +426,13 @@ impl Solver for AntSolver {
             }
         }
 
-		// let h = random_int(0..self.solution.height);
-		// let w = random_int(0..self.solution.width);
-		// self.phermons[h][w] = 1.0 / (self.solution.height * self.solution.width) as f64; 
+        // let h = random_int(0..self.solution.height);
+        // let w = random_int(0..self.solution.width);
+        // self.phermons[h][w] = 1.0 / (self.solution.height * self.solution.width) as f64;
 
         // Best value evaporation.
         const BVE: f64 = 0.001;
-        self.solution.best_p *= 1.0 - BVE;		
+        self.solution.best_p *= 1.0 - BVE;
 
         // console_log!("test");
         // for (i, row) in self.phermons.iter().enumerate() {

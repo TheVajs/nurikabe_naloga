@@ -157,6 +157,13 @@ fn setup_callbacks(worker: Rc<RefCell<web_sys::Worker>>) {
     let on_click_callback = Closure::wrap(Box::new(move || {
         let document = window.document().unwrap();
 
+		document
+            .get_element_by_id("progress")
+            .expect("#progress should exist")
+            .dyn_ref::<HtmlElement>()
+            .expect("#progress should be a HtmlInputElement")
+            .set_inner_text("In progress...");
+
         let mut properties = Properties::default();
 
         let get_element_by_id = document.get_element_by_id("ants");
@@ -246,9 +253,18 @@ fn view_nurikabe(nurikabe: Nurikabe) {
     let window = web_sys::window().unwrap();
     let document = window.document().unwrap();
 
+	document
+		.get_element_by_id("progress")
+		.expect("#progress should exist")
+		.dyn_ref::<HtmlElement>()
+		.expect("#progress should be a HtmlInputElement")
+		.set_inner_text("");
+
+
     // let previous = window
     //     .get("previous")
     //     .map(|p| JsValue::into_serde::<Nurikabe>(&p).unwrap());
+
     let parent = document.get_element_by_id("nurikabe").unwrap();
     parent.set_inner_html("");
 
@@ -318,8 +334,7 @@ fn view_nurikabe(nurikabe: Nurikabe) {
 		<i>Dims:</i> {} x {} <br/>
 		<i>Solved:</i> <b>{}</b> <br/>
 		<i>Iteration:</i> <b>{}</b> <br/>
-		<i>Time:</i> {} ms<br/>
-		<br/>",
+		<i>Time:</i> {} ms<br/>",
         nurikabe.path, nurikabe.width, nurikabe.height, nurikabe.solved, nurikabe.iteration, nurikabe.duration
     ));
     // todo, add to window.

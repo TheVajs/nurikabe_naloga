@@ -140,9 +140,7 @@ function view_nurikabe(nurikabe) {
 				<i>Dims:</i> ${nurikabe.width} x ${nurikabe.height} <br/>
 				<i>Solved:</i> <b>${nurikabe.solved}</b> <br/>
 				<i>Iteration:</i> <b>${nurikabe.iteration}</b> <br/>
-				<i>Time:</i> ${0} ms<br/>
-				<br/>
-			`;
+				<i>Time:</i> ${0} ms`;
 
   window.previous = nurikabe;
 }

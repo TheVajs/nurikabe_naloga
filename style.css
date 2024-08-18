@@ -102,6 +102,13 @@ p {
   margin: 10px;
 }
 
+#progress {
+  font-size: 0.8em;
+	border-radius: 2px;
+	background-color: bisque;
+	width: fit-content;
+}
+
 #test {
   margin-left: 25px;
 }
