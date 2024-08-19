@@ -9,6 +9,16 @@ export function load(input: string): any;
 */
 export function startup(): void;
 /**
+* @param {Int32Array} input
+* @returns {number}
+*/
+export function sum_of_squares(input: Int32Array): number;
+/**
+* @param {Int32Array} input
+* @returns {number}
+*/
+export function sum_of_squares_simple(input: Int32Array): number;
+/**
 */
 export class NurikabeApp {
   free(): void;
@@ -33,11 +43,13 @@ export interface InitOutput {
   readonly nurikabeapp_new: () => number;
   readonly nurikabeapp_start_solver: (a: number, b: number, c: number) => void;
   readonly startup: () => void;
+  readonly sum_of_squares: (a: number, b: number) => number;
+  readonly sum_of_squares_simple: (a: number, b: number) => number;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;
-  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hf2c74eccd684534e: (a: number, b: number, c: number) => void;
-  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h9d540223b01ae781: (a: number, b: number) => void;
+  readonly _dyn_core__ops__function__FnMut__A____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__hda9bb714846f1c15: (a: number, b: number, c: number) => void;
+  readonly _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h2a5decc8654b913f: (a: number, b: number) => void;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;

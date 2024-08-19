@@ -8,6 +8,7 @@ const BLACK: i32 = 0;
 #[derive(Debug, Clone)]
 struct Island {
     id: i32,
+    enclosed: bool,
     pos: (usize, usize),
     size: usize,
     final_size: usize,
@@ -17,6 +18,7 @@ impl Island {
     fn new(id: i32, pos: (usize, usize), size: usize, final_size: usize) -> Self {
         Self {
             id,
+            enclosed: false,
             pos,
             size,
             final_size,
@@ -64,29 +66,81 @@ impl Grid {
     /// is found, than one of the possible start positions for a deapth first search
     /// (DFS) check is returned.
     ///
-    fn is_river_frgmented(&mut self, x: usize, y: usize, island_id: i32) -> bool {
-        if let Some(start) = self.creates_wall_cut(x, y) {
+    fn is_river_frgmented(&mut self, x: usize, y: usize, island: &mut Island) -> bool {
+        if let Some(start) = self.cut_creates_frgments(x, y, island) {
+            assert_eq!(self.cells[start.0][start.1], BLACK, "Problem!");
+
             // Set white.
-            self.cells[x][y] = island_id;
+            self.cells[x][y] = island.id;
+            self.reached_white += 1;
 
-            let num_black_cells = self.height * self.width - self.reached_white - 1;
             let reached_black_cells = self.dfs(start);
+            let num_black_cells = self.height * self.width - self.reached_white;
 
-            // console_log!("{}, {}, {}", reached_black_cells, num_black_cells, self.reached_white);
             let in_fragments = reached_black_cells != num_black_cells;
-
-            // console_log!("test");
-            // for (i, row) in self.cells.iter().enumerate() {
-            //     console_log!("{}= {:.4?}", i, row);
-            // }
 
             // Restore.
             self.cells[x][y] = BLACK;
+            self.reached_white -= 1;
 
-            return in_fragments;
+            in_fragments
+        } else {
+            false
+        }
+    }
+
+    /// Checks for ossible situation when cuts in the river can make isolated
+    /// rivers.
+    ///
+    fn cut_creates_frgments(
+        &self,
+        x: usize,
+        y: usize,
+        island: &mut Island,
+    ) -> Option<(usize, usize)> {
+        let mut neighbours: [bool; 8] = [false; 8];
+        let mut num = 0;
+
+        for_valid_neighbours_with_outside(self.width, self.height, x, y, |a, b| {
+            neighbours[num] = self.cells[a][b] > 0;
+            num += 1;
+        });
+
+        // Corner case. Literally. :)
+        if num == 3 {
+            return None;
         }
 
-        false
+        let mut prev = None;
+        let skips = neighbours[..num].iter().fold(0, |mut s, &cell| {
+            if let Some(pre) = prev {
+                if pre != cell {
+                    s += 1;
+                }
+            }
+            prev = Some(cell);
+            s
+        });
+
+        if skips > 2 || island.enclosed {
+            island.enclosed = true;
+
+            let mut diagonal = vec![];
+
+            for_valid_diagonal_neighbours(self.width, self.height, x, y, |a, b| {
+                diagonal.push((a, b));
+            });
+
+            for (a, b) in diagonal.into_iter() {
+                if self.cells[a][y] == BLACK {
+                    return Some((a, y));
+                } else if self.cells[x][b] == BLACK {
+                    return Some((x, b));
+                }
+            }
+        }
+
+        None
     }
 
     /// Depth first search with counting.
@@ -111,52 +165,6 @@ impl Grid {
         }
 
         num_black
-    }
-
-    /// Possible situation when cuts in the river can cause problems.
-    /// Only two situations are possible:
-    /// - diagonaly touching islands/rivers
-    /// - potential island (x, y) placed on grid border.
-    ///
-    /// All other situation are taken care by the previous steps.
-    ///
-    fn creates_wall_cut(&self, x: usize, y: usize) -> Option<(usize, usize)> {
-        let living_on_edge = x == self.height - 1 || x == 0 || y == self.width - 1 || y == 0;
-        if living_on_edge {
-            let mut black_cells = vec![];
-            for_valid_neighbours(self.width, self.height, x, y, |a, b| {
-                if self.cells[a][b] == BLACK {
-                    black_cells.push((a, b));
-                }
-            });
-
-            if let Some(&(a, b)) = black_cells.first() {
-                return Some((a, b));
-            }
-        }
-
-        let mut neighbours = vec![];
-        for_valid_diagonal_neighbours(self.width, self.height, x, y, |a, b| {
-            if self.cells[a][b] != BLACK {
-                neighbours.push((a, b))
-            }
-        });
-
-        match neighbours.len() {
-            0 => (),
-            1..=4 => {
-                for &(a, b) in neighbours.iter() {
-                    if self.cells[a][y] == BLACK {
-                        return Some((a, y));
-                    } else if self.cells[x][b] == BLACK {
-                        return Some((x, b));
-                    }
-                }
-            }
-            _ => (),
-        }
-
-        None
     }
 
     /// Get number of pools, which are 2x2 black cells.
@@ -259,6 +267,7 @@ impl Solver for RandomAntSolver {
 
             let mut islands = self.islands.clone();
             let mut k_grid = self.grid.clone();
+            let mut set = HashSet::new();
 
             k_grid.reached_white = islands.len();
 
@@ -272,15 +281,9 @@ impl Solver for RandomAntSolver {
                     let (x, y) = queue.remove(random_int(0..queue.len()));
 
                     if !first {
-                        // Check validity of island, skip when:
-                        // 1. Connects with another island.
-                        // 2. Breaks continuation with other black/river cells.
-
-                        if k_grid.is_connecting_islands(x, y, island.id) {
-                            continue;
-                        }
-
-                        if k_grid.is_river_frgmented(x, y, island.id) {
+                        if k_grid.is_connecting_islands(x, y, island.id)
+                            || k_grid.is_river_frgmented(x, y, &mut island)
+                        {
                             continue;
                         }
 
@@ -299,8 +302,15 @@ impl Solver for RandomAntSolver {
                     // Add neighbours to N list.
 
                     for_valid_neighbours(k_grid.width, k_grid.height, x, y, |a, b| {
-                        if k_grid.cells[a][b] == BLACK {
+                        if k_grid.cells[a][b] == BLACK && !set.contains(&(a, b)) {
+                            set.insert((a, b));
                             queue.push((a, b));
+                        }
+                    });
+
+                    for_valid_diagonal_neighbours(k_grid.width, k_grid.height, x, y, |a, b| {
+                        if k_grid.cells[a][b] != BLACK {
+                            island.enclosed = true;
                         }
                     });
 

@@ -1,9 +1,29 @@
-import init, { startup, load } from "./pkg/nurikabe.js";
+import init, {
+  startup,
+  load,
+  // sum_of_squares,
+  // sum_of_squares_simple,
+} from "./pkg/nurikabe.js";
 
 async function run_wasm() {
+  console.log("Run startup!");
+
   await init();
 
-  console.log("Run startup!");
+  document.getElementById("file_selector").onchange = async (_e) => {
+    let path = document.getElementById("file_selector").value;
+    path = path.split("\\");
+    path = "./data/" + path[path.length - 1];
+
+    await update_grid(path);
+  };
+
+  async function update_grid(path) {
+    let nurikabe = await from_file(path);
+    window.nurikabe = nurikabe;
+    window.previous = null;
+    restart_grid();
+  }
 
   async function from_file(path) {
     let nurikabe = {};
@@ -23,76 +43,76 @@ async function run_wasm() {
     return nurikabe;
   }
 
-  window.enable_clicking = (id) => {
-    let obj = document.getElementById(id);
-    if (obj) {
-      function on_mousemove(e) {
-        window.mouse_pos = on_mouse_move(e, obj);
-      }
-
-      function on_click(e) {
-        on_board_click(e, id);
-      }
-
-      obj.onmousemove = on_mousemove;
-      obj.onclick = on_click;
-    }
-  };
-
-  async function update(path) {
+  async function restart_grid() {
     let grid = document.getElementById("nurikabe");
     grid.innerHTML = "";
-
-    // Update state.
-    let nurikabe = await from_file(path);
-    window.nurikabe = nurikabe;
-    window.previous = null;
     view_nurikabe(nurikabe);
-
-    window.enable_clicking("grid");
     enable_last_modifiable();
   }
 
-  async function restart_board(_e) {
-    window.method = document.getElementById("method").value;
-    document.getElementById("nurikabe").innerHTML = "";
-    view_nurikabe(window.nurikabe);
-  }
+  window.enable_clicking = (id) => {
+    let obj = document.getElementById(id);
+    if (!obj) {
+      return;
+    }
+
+    obj.onmousemove = (e) => (window.mouse_pos = on_mouse_move(e, obj));
+    obj.onclick = (e) => on_board_click(e, id);
+  };
 
   // ===========================
-  // Default nurikabe grid.
+  // Default state.
   // ===========================
 
   let path = "./data/nurikabe10x10v2.csv";
-  await update(path);
-
-  // ===========================
-  // Set event listeners.
-  // ===========================
-
-  let file_selector = document.getElementById("file_selector");
-  file_selector.onchange = async () => {
-    let path = document.getElementById("file_selector").value;
-    path = path.split("\\");
-    path = "./data/" + path[path.length - 1];
-
-    await update(path);
-  };
+  await update_grid(path);
 
   window.method = "ants";
-  document.getElementById("method").value = "ants";
-  document.getElementById("method").onchange = restart_board;
+  let method = document.getElementById("method");
+  method.value = "ants";
+  method.onchange = async () => {
+    window.method = document.getElementById("method").value;
+    restart_grid();
+  };
+
   document.getElementById("ants").value = 10;
   document.getElementById("max_iter").value = 5000;
   document.getElementById("local").value = 0.1;
   document.getElementById("global").value = 0.2;
   document.getElementById("greedy").value = 0.9;
+  document.getElementById("bve").value = 0.001;
 
   // ===========================
   // Call WASM.
   // ===========================
 
+  // console.log(navigator.hardwareConcurrency);
+
   startup();
+
+  // Testing
+
+  // let start_time = performance.now();
+
+  // let list = [];
+  // for (let i = 0; i < 50000000; i++) {
+  //   list.push(1);
+  // }
+  // console.log(sum_of_squares_simple(list));
+
+  // let duration = performance.now() - start_time;
+  // console.log(duration);
+
+  // start_time = performance.now();
+
+  // list = [];
+  // for (let i = 0; i < 50000000; i++) {
+  //   list.push(1);
+  // }
+  // console.log(sum_of_squares(list));
+
+  // duration = performance.now() - start_time;
+  // console.log(duration);
 }
 
 run_wasm();

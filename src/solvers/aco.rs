@@ -1,5 +1,8 @@
+// use rayon::iter::IntoParallelIterator;
+// use rayon::iter::ParallelIterator;
 use std::collections::{HashSet, VecDeque};
 use wasm_bindgen::JsValue;
+use web_sys::js_sys::Math::sqrt;
 
 use super::*;
 
@@ -8,6 +11,7 @@ const BLACK: i32 = 0;
 #[derive(Debug, Clone)]
 struct Island {
     id: i32,
+    enclosed: bool,
     pos: (usize, usize),
     size: usize,
     final_size: usize,
@@ -17,6 +21,7 @@ impl Island {
     fn new(id: i32, pos: (usize, usize), size: usize, final_size: usize) -> Self {
         Self {
             id,
+            enclosed: false,
             pos,
             size,
             final_size,
@@ -52,10 +57,10 @@ impl Grid {
 
     /// Checks if there is a a possible connection with a different island.
     ///
-    fn is_connecting_islands(&self, x: usize, y: usize, island_id: i32) -> bool {
+    fn is_connecting_islands(&self, x: usize, y: usize, island: &Island) -> bool {
         for_none_of_neibhbours(self.width, self.height, x, y, |a, b| -> bool {
             let sample = self.cells[a][b];
-            sample != BLACK && sample != island_id
+            sample != BLACK && sample != island.id
         })
     }
 
@@ -64,43 +69,83 @@ impl Grid {
     /// is found, than one of the possible start positions for a deapth first search
     /// (DFS) check is returned.
     ///
-    fn is_river_frgmented(&mut self, x: usize, y: usize, island_id: i32) -> bool {
-        // console_log!("Is cut? {:?} for island {}", (x, y), island_id);
+    fn is_river_frgmented(&mut self, x: usize, y: usize, island: &mut Island) -> bool {
+        if let Some(start) = self.cut_creates_frgments(x, y, island) {
+            assert_eq!(self.cells[start.0][start.1], BLACK, "Problem!");
 
-        // TODO problem, currently there are still some test made that are
-        // not necessary.
-
-        if let Some(start) = self.creates_wall_cut(x, y) {
             // Set white.
-            self.cells[x][y] = island_id;
+            self.cells[x][y] = island.id;
+            self.reached_white += 1;
 
-            let num_black_cells = self.height * self.width - self.reached_white - 1;
             let reached_black_cells = self.dfs(start);
+            let num_black_cells = self.height * self.width - self.reached_white;
 
-            // console_log!(
-            //     "{}, {}, {}",
-            //     reached_black_cells,
-            //     num_black_cells,
-            //     self.reached_white
-            // );
             let in_fragments = reached_black_cells != num_black_cells;
-
-            // for (i, row) in self.cells.iter().enumerate() {
-            //     console_log!("{}= {:.4?}", i, row);
-            // }
-            // console_log!("{}", in_fragments);
 
             // Restore.
             self.cells[x][y] = BLACK;
+            self.reached_white -= 1;
 
-            return in_fragments;
+            in_fragments
+        } else {
+            false
         }
-
-        false
     }
 
-    /// Depth first search with counting.
+    /// Checks for ossible situation when cuts in the river can make isolated
+    /// rivers.
     ///
+    fn cut_creates_frgments(
+        &self,
+        x: usize,
+        y: usize,
+        island: &mut Island,
+    ) -> Option<(usize, usize)> {
+        let mut neighbours: [bool; 8] = [false; 8];
+        let mut num = 0;
+
+        for_valid_neighbours_with_outside(self.width, self.height, x, y, |a, b| {
+            neighbours[num] = self.cells[a][b] > 0;
+            num += 1;
+        });
+
+        // Corner case. Literally. :)
+        if num == 3 {
+            return None;
+        }
+
+        let mut prev = None;
+        let skips = neighbours[..num].iter().fold(0, |mut s, &cell| {
+            if let Some(pre) = prev {
+                if pre != cell {
+                    s += 1;
+                }
+            }
+            prev = Some(cell);
+            s
+        });
+
+        if skips > 2 || island.enclosed {
+            island.enclosed = true;
+
+            let mut diagonal = vec![];
+
+            for_valid_diagonal_neighbours(self.width, self.height, x, y, |a, b| {
+                diagonal.push((a, b));
+            });
+
+            for (a, b) in diagonal.into_iter() {
+                if self.cells[a][y] == BLACK {
+                    return Some((a, y));
+                } else if self.cells[x][b] == BLACK {
+                    return Some((x, b));
+                }
+            }
+        }
+
+        None
+    }
+
     fn dfs(&self, start: (usize, usize)) -> usize {
         let mut queue = VecDeque::new();
         let mut reached = HashSet::new();
@@ -113,7 +158,7 @@ impl Grid {
             num_black += 1;
 
             for_valid_neighbours(self.width, self.height, x1, y1, |a, b| {
-                if self.cells[a][b] == 0 && !reached.contains(&(a, b)) {
+                if self.cells[a][b] == BLACK && !reached.contains(&(a, b)) {
                     queue.push_front((a, b));
                     reached.insert((a, b));
                 }
@@ -123,56 +168,16 @@ impl Grid {
         num_black
     }
 
-    /// Possible situation when cuts in the river can cause problems.
-    /// Only two situations are possible:
-    /// - diagonaly touching islands/rivers
-    /// - potential island (x, y) placed on grid border.
-    ///
-    /// All other situation are taken care by the previous steps.
-    ///
-    fn creates_wall_cut(&self, x: usize, y: usize) -> Option<(usize, usize)> {
-        let living_on_edge = x == self.height - 1 || x == 0 || y == self.width - 1 || y == 0;
-        if living_on_edge {
-            let mut black_cells = vec![];
-            for_valid_neighbours(self.width, self.height, x, y, |a, b| {
-                if self.cells[a][b] == BLACK {
-                    black_cells.push((a, b));
-                }
-            });
-
-            if let Some(&(a, b)) = black_cells.first() {
-                return Some((a, b));
-            }
-        }
-
-        let mut neighbours = vec![];
-        for_valid_diagonal_neighbours(self.width, self.height, x, y, |a, b| {
-            if self.cells[a][b] != BLACK {
-                neighbours.push((a, b))
-            }
-        });
-
-        match neighbours.len() {
-            0 => (),
-            1..=4 => {
-                for &(a, b) in neighbours.iter() {
-                    if self.cells[a][y] == BLACK {
-                        return Some((a, y));
-                    } else if self.cells[x][b] == BLACK {
-                        return Some((x, b));
-                    }
-                }
-            }
-            _ => (),
-        }
-
-        None
-    }
-
     /// Adds valid neighbour to N quee, where based on phermon value the next
     /// cell is selected.
     ///
-    fn add_neighbours(&self, x: usize, y: usize, n: &mut Vec<(usize, usize)>) {
+    fn add_neighbours(
+        &self,
+        x: usize,
+        y: usize,
+        n: &mut Vec<(usize, usize)>,
+        set: &mut HashSet<(usize, usize)>,
+    ) {
         let list = [
             (x, y + 1),
             (x.wrapping_sub(1), y),
@@ -183,15 +188,14 @@ impl Grid {
         let start = random_int(0..4);
         for i in 0..4 {
             let (a, b) = list[(start + i) % 4];
-            if self.valid(a, b) && self.cells[a][b] == BLACK {
+            if a < self.height
+                && b < self.width
+                && self.cells[a][b] == BLACK
+                && !set.contains(&(a, b))
+            {
                 n.push((a, b));
             }
         }
-    }
-
-    #[inline]
-    fn valid(&self, x: usize, y: usize) -> bool {
-        x < self.height && y < self.width
     }
 
     fn get_num_pools(&self) -> usize {
@@ -230,6 +234,7 @@ pub struct AntSolver {
     g_evap: f64,
     evap: f64,
     greedines: f64,
+    bve: f64,
     phermons: Vec<Vec<f64>>,
 
     grid: Grid,
@@ -248,6 +253,7 @@ impl AntSolver {
         global_evap: f64,
         evap: f64,
         greedines: f64,
+        bve: f64,
         nurikabe: Nurikabe,
     ) -> Self {
         let width = nurikabe.width;
@@ -294,6 +300,7 @@ impl AntSolver {
             l_evap: local_evap.clamp(0.0, 1.0),
             g_evap: global_evap.clamp(0.0, 1.0),
             greedines: greedines.clamp(0.0, 1.0),
+            bve: bve.clamp(0.001, 1.0),
             phermons,
             grid: Grid::new(width, height, cells),
             solution: Grid::new(0, 0, vec![vec![]]),
@@ -308,98 +315,120 @@ impl AntSolver {
 
 impl Solver for AntSolver {
     fn solve(&mut self) -> Step {
-        for _ in 0..self.ants {
+        let mut results = (0..self.ants)
+            .map(|_| {
+                let mut islands = self.islands.clone();
+                let mut k_grid = self.grid.clone();
+                let mut k_phermons = self.phermons.clone();
+                let mut k_set = HashSet::new();
+
+                k_grid.reached_white = islands.len();
+
+                // islands.sort_by_key(|island| island.final_size);
+
+                while !islands.is_empty() {
+                    let mut island = islands.remove(random_int(0..islands.len()));
+                    let mut queue = vec![island.pos];
+                    let mut first = true;
+
+                    while !queue.is_empty() {
+                        // Phermon strategy.
+
+                        let (x, y) = if first {
+                            queue.remove(0)
+                        } else {
+                            // Pick base on greedines.
+
+                            let s = if random_float() < self.greedines {
+                                // Pick max phermon position.
+
+                                let mut pick = 0.0;
+                                let mut index = 0;
+                                for (i, &(a, b)) in queue.iter().enumerate() {
+                                    if k_phermons[a][b] > pick {
+                                        pick = k_phermons[a][b];
+                                        index = i;
+                                    }
+                                }
+                                index
+                            } else {
+                                // Pick roulette.
+
+                                let r = random_float();
+                                let sum: f64 = queue.iter().map(|&(a, b)| k_phermons[a][b]).sum();
+
+                                let mut acc = 0.0;
+                                let accumilate = queue
+                                    .iter()
+                                    .map(|&(a, b)| {
+                                        acc += k_phermons[a][b] / (sum + 1e-10);
+                                        acc
+                                    })
+                                    .collect::<Vec<f64>>();
+
+                                accumilate
+                                    .into_iter()
+                                    .position(|prob| r < prob)
+                                    .unwrap_or(queue.len() - 1)
+                            };
+
+                            let (x, y) = queue.remove(s);
+                            if k_grid.cells[x][y] != BLACK {
+                                continue;
+                            }
+
+                            if k_grid.is_connecting_islands(x, y, &island)
+                                || k_grid.is_river_frgmented(x, y, &mut island)
+                            {
+                                continue;
+                            }
+
+                            k_grid.reached_white += 1;
+
+                            (x, y)
+                        };
+
+                        // Cell is valid. Update the current ant grid.
+
+                        let dist = {
+                            let xdis = island.pos.0 - x;
+                            let ydis = island.pos.1 - y;
+                            let dist = sqrt((xdis * xdis + ydis * ydis) as f64);
+                            1.0 - 1.0 / (dist - 0.8).exp()
+                        };
+
+                        let p = self.l_evap;
+
+                        k_phermons[x][y] = (1.0 - p) * (k_phermons[x][y]) + p * (self.evap * dist);
+                        k_grid.cells[x][y] = island.id;
+
+                        island.size += 1;
+                        if island.size >= island.final_size {
+                            queue.clear();
+                            break;
+                        }
+
+                        k_grid.add_neighbours(x, y, &mut queue, &mut k_set);
+
+                        for_valid_diagonal_neighbours(k_grid.width, k_grid.height, x, y, |a, b| {
+                            if k_grid.cells[a][b] != BLACK {
+                                island.enclosed = true;
+                            }
+                        });
+
+                        first = false;
+                    }
+                }
+                (k_grid, k_phermons)
+            })
+            .collect::<Vec<_>>();
+
+        for (k_grid, k_phermons) in results.iter_mut() {
             self.iteration += 1;
 
-            let mut islands = self.islands.clone();
-            let mut k_grid = self.grid.clone();
-            let mut k_phermons = self.phermons.clone();
-
-            k_grid.reached_white = islands.len();
-
-            while !islands.is_empty() {
-                let mut island = islands.remove(random_int(0..islands.len()));
-                let mut queue = vec![island.pos];
-                let mut first = true;
-
-                while !queue.is_empty() {
-                    // Phermon strategy.
-
-                    let r = random_float();
-                    let s = if r < self.greedines {
-                        let mut pick = 0.0;
-                        let mut index = 0;
-
-                        for (i, &(a, b)) in queue.iter().enumerate() {
-                            if k_phermons[a][b] > pick {
-                                pick = k_phermons[a][b];
-                                index = i;
-                            }
-                        }
-                        index
-                    } else {
-                        let r = random_float();
-                        let sum: f64 = queue.iter().map(|&(a, b)| k_phermons[a][b]).sum();
-
-                        let mut acc = 0.0;
-                        let accumilate = queue
-                            .iter()
-                            .map(|&(a, b)| {
-                                acc += k_phermons[a][b] / (sum + 1e-10);
-                                acc
-                            })
-                            .collect::<Vec<f64>>();
-
-                        // console_log!("{}, Accum: {:.4?}", sum, accumilate);
-
-                        let last = queue.len() - 1;
-                        accumilate
-                            .into_iter()
-                            .position(|prob| r < prob)
-                            .unwrap_or(last)
-                    };
-
-                    let (x, y) = queue.remove(s);
-
-                    if !first {
-                        // Check validity of island, skip when:
-                        // 1. Connects with another island.
-                        // 2. Breaks continuation with other black/river cells.
-
-                        if k_grid.is_connecting_islands(x, y, island.id) {
-                            continue;
-                        }
-
-                        if k_grid.is_river_frgmented(x, y, island.id) {
-                            continue;
-                        }
-
-                        k_grid.reached_white += 1;
-                    }
-
-                    // Local update of phermon.
-
-                    let p = self.l_evap;
-                    k_phermons[x][y] = (1.0 - p) * k_phermons[x][y] + p * self.evap;
-
-                    // Cell is valid. Update the current ant grid.
-
-                    k_grid.cells[x][y] = island.id;
-
-                    island.size += 1;
-                    if island.size >= island.final_size {
-                        break;
-                    }
-
-                    k_grid.add_neighbours(x, y, &mut queue);
-
-                    first = false;
-                }
-            }
-
             if k_grid.evaluate(self.solution_num_white) > self.solution.best_p {
-                self.solution.clone_from(&k_grid);
-                self.phermons.clone_from(&k_phermons);
+                self.solution.clone_from(k_grid);
+                self.phermons.clone_from(k_phermons);
 
                 self.explain = format!("Found current best solution is {}", self.solution.eval);
 
@@ -426,15 +455,13 @@ impl Solver for AntSolver {
             }
         }
 
-        // let h = random_int(0..self.solution.height);
-        // let w = random_int(0..self.solution.width);
-        // self.phermons[h][w] = 1.0 / (self.solution.height * self.solution.width) as f64;
+        let h = random_int(0..self.solution.height);
+        let w = random_int(0..self.solution.width);
+        self.phermons[h][w] = 1.0 / (self.solution.height * self.solution.width) as f64;
 
         // Best value evaporation.
-        const BVE: f64 = 0.001;
-        self.solution.best_p *= 1.0 - BVE;
+        self.solution.best_p *= 1.0 - self.bve;
 
-        // console_log!("test");
         // for (i, row) in self.phermons.iter().enumerate() {
         //     console_log!("{}= {:.4?}", i, row);
         // }

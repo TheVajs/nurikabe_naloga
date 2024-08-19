@@ -2,6 +2,8 @@ use std::{cell::RefCell, rc::Rc};
 
 use gloo_utils::format::JsValueSerdeExt;
 use nurikabe::{load_nurikabe, Nurikabe};
+// use rayon::iter::*;
+
 use serde::{Deserialize, Serialize};
 use solvers::{aco::AntSolver, random_ant::RandomAntSolver, NaiveSolver, Solver, Step};
 use wasm_bindgen::prelude::*;
@@ -20,6 +22,7 @@ pub struct Properties {
     l_evap: f64,
     g_evap: f64,
     greedines: f64,
+	bve: f64,
     max_iter: usize,
 }
 
@@ -50,19 +53,17 @@ impl NurikabeApp {
         let properties = JsValue::into_serde::<Properties>(&properties)
             .map_err(|_| "Expects properties objects")?;
 
-        let result = match &properties.method[..] {
-            "rules" => Ok(NurikabeApp::rule_solver(properties)),
-            "rand_ants" => Ok(NurikabeApp::random_ant(properties)),
-            "ants" => Ok(NurikabeApp::ant_colony_optimization(properties)),
-            method => Err(format!("Not implemented method: {}", &method)),
-        };
-
         // self.previous = result
         //     .clone()
         //     .ok()
         //     .map(|v| v.into_serde::<Nurikabe>().unwrap());
 
-		result
+		match &properties.method[..] {
+            "rules" => Ok(NurikabeApp::rule_solver(properties)),
+            "rand_ants" => Ok(NurikabeApp::random_ant(properties)),
+            "ants" => Ok(NurikabeApp::ant_colony_optimization(properties)),
+            method => Err(format!("Not implemented method: {}", &method)),
+        }
     }
 
     fn rule_solver(properties: Properties) -> JsValue {
@@ -109,11 +110,12 @@ impl NurikabeApp {
             l_evap,
             g_evap,
             greedines,
+			bve,
             ..
         } = properties;
 
 		let start_evap = 1.0 / (nurikabe.width * nurikabe.height) as f64;
-        let mut solver = AntSolver::new(ants, l_evap, g_evap, start_evap, greedines, nurikabe);
+        let mut solver = AntSolver::new(ants, l_evap, g_evap, start_evap, greedines, bve, nurikabe);
         solver.verbose = true;
 
         while solver.get_iteration() < properties.max_iter {
@@ -126,6 +128,12 @@ impl NurikabeApp {
 
 		solver.get_state()
 
+    }
+}
+
+impl Default for NurikabeApp {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -145,6 +153,20 @@ pub fn startup() {
 	console_log!("{:?}", &worker_handle);
 
     setup_callbacks(worker_handle);
+}
+
+#[wasm_bindgen]
+pub fn sum_of_squares(input: &[i32]) -> i32 {
+    input.iter() 
+         .map(|&i| i * i)
+         .sum()
+}
+
+#[wasm_bindgen]
+pub fn sum_of_squares_simple(input: &[i32]) -> i32 {
+    input.iter() 
+         .map(|&i| i * i)
+         .sum()
 }
 
 fn setup_callbacks(worker: Rc<RefCell<web_sys::Worker>>) {
@@ -211,13 +233,20 @@ fn setup_callbacks(worker: Rc<RefCell<web_sys::Worker>>) {
             .parse::<f64>()
             .unwrap();
 
+        properties.bve = document
+            .get_element_by_id("bve")
+            .unwrap()
+            .dyn_ref::<HtmlInputElement>()
+            .unwrap()
+            .value()
+            .parse::<f64>()
+            .unwrap();
+
+
         let nurikabe = window.get("nurikabe").unwrap();
         let method = window.get("method").unwrap();
         properties.nurikabe = JsValue::into_serde::<Nurikabe>(&nurikabe).expect("Nurikabe!");
         properties.method = JsValue::into_serde::<String>(&method).expect("Method!");
-
-        // Send to worker.
-		console_log!("Sending to worker");
 
         let worker_handle = &*worker.borrow();
         let _ = worker_handle.post_message(&serde_wasm_bindgen::to_value(&properties).unwrap());
@@ -244,29 +273,30 @@ fn get_on_msg_callback() -> Closure<dyn FnMut(MessageEvent)> {
     Closure::wrap(Box::new(move |event: MessageEvent| {
         let solver_result: Nurikabe = event.data().into_serde().expect("Nurikabe Result.");
 
+		let window = web_sys::window().unwrap();
+		let document = window.document().unwrap();
+		document
+			.get_element_by_id("progress")
+			.expect("#progress should exist")
+			.dyn_ref::<HtmlElement>()
+			.expect("#progress should be a HtmlInputElement")
+			.set_inner_text("");
+
         view_nurikabe(solver_result);
     }) as Box<dyn FnMut(_)>)
 }
 
 /// Update nurikabe grid.
 fn view_nurikabe(nurikabe: Nurikabe) {
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
-
-	document
-		.get_element_by_id("progress")
-		.expect("#progress should exist")
-		.dyn_ref::<HtmlElement>()
-		.expect("#progress should be a HtmlInputElement")
-		.set_inner_text("");
-
-
     // let previous = window
     //     .get("previous")
     //     .map(|p| JsValue::into_serde::<Nurikabe>(&p).unwrap());
 
-    let parent = document.get_element_by_id("nurikabe").unwrap();
-    parent.set_inner_html("");
+    let window = web_sys::window().unwrap();
+    let document = window.document().unwrap();
+
+	let parent = document.get_element_by_id("nurikabe").unwrap();
+	parent.set_inner_html("");
 
     let width = nurikabe.width;
     let height = nurikabe.height;

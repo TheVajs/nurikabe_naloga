@@ -37,6 +37,41 @@ fn get_random_buf() -> Result<[u8; 1], getrandom::Error> {
     Ok(buf)
 }
 
+#[inline]
+pub fn for_valid_neighbours_with_outside(
+    width: usize,
+    height: usize,
+    x: usize,
+    y: usize,
+    mut f: impl FnMut(usize, usize),
+) {
+    if x + 1 < height {
+        f(x + 1, y);
+    }
+    if x + 1 < height && y + 1 < width {
+        f(x + 1, y + 1);
+    }
+    if y + 1 < width {
+        f(x, y + 1);
+    }
+    if x > 0 && y + 1 < width {
+        f(x - 1, y + 1);
+    }
+    if x > 0 {
+        f(x - 1, y);
+    }
+    if x > 0 && y > 0 {
+        f(x - 1, y - 1);
+    }
+    if y > 0 {
+        f(x, y - 1);
+    }
+    if x + 1 < height && y > 0 {
+        f(x + 1, y - 1);
+    }
+}
+
+#[inline]
 pub fn for_valid_neighbours(
     width: usize,
     height: usize,
@@ -58,6 +93,7 @@ pub fn for_valid_neighbours(
     }
 }
 
+#[inline]
 pub fn for_valid_diagonal_neighbours(
     width: usize,
     height: usize,
@@ -68,19 +104,20 @@ pub fn for_valid_diagonal_neighbours(
     if x + 1 < height && y + 1 < width {
         f(x + 1, y + 1);
     }
-    if y + 1 < width && x > 0 {
+    if x > 0 && y + 1 < width {
         f(x - 1, y + 1);
     }
     if x > 0 && y > 0 {
         f(x - 1, y - 1);
     }
-    if y > 0 && x + 1 < height {
+    if x + 1 < height && y > 0 {
         f(x + 1, y - 1);
     }
 }
 
 /// Returns false if one neighbour is invalid.
 ///
+#[inline]
 pub fn for_none_of_neibhbours(
     width: usize,
     height: usize,

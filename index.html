@@ -38,83 +38,44 @@
           <h5>Properties Ant Colony:</h5>
           <form action="/nurikabe_options">
             <label for="ants">Ants:</label>
-            <input
-              type="number"
-              id="ants"
-              name="ants"
-              min="1"
-              max="100"
-            /><br />
+            <input type="number" id="ants" name="ants" min="1" max="100" /><br />
             <label for="max_iter">Max iterations:</label>
-            <input
-              type="number"
-              id="max_iter"
-              name="max_iter"
-              step="500"
-              min="0"
-            /><br />
+            <input type="number" id="max_iter" name="max_iter" step="500" min="0" /><br />
             <label for="local">Local evaporation:</label>
-            <input
-              type="number"
-              id="local"
-              name="local"
-              step=".01"
-              min="0"
-              max="1"
-            /><br />
+            <input type="number" id="local" name="local" step=".01" min="0" max="1" /><br />
             <label for="global">Global evaporation:</label>
-            <input
-              type="number"
-              id="global"
-              name="global"
-              step=".01"
-              min="0"
-              max="1"
-            /><br />
+            <input type="number" id="global" name="global" step=".01" min="0" max="1" /><br />
             <label for="greedy">Greedy (0.0-1.0):</label>
-            <input
-              type="number"
-              id="greedy"
-              name="greedy"
-              step=".05"
-              min="0"
-              max="1"
-            />
+            <input type="number" id="greedy" name="greedy" step=".01" min="0" max="1" /><br />
+            <label for="bve">BVE (Best Value Evaporation):</label>
+            <input type="number" id="bve" name="bve" step=".001" min="0.001" max=".1" />
           </form>
         </div>
         <div style="margin: 5px">
-          <button
-            class="button-6"
-            onclick="getElementById('file_selector').click()"
-            role="button"
-          >
+          <button class="button-6" onclick="getElementById('file_selector').click()" role="button">
             Load nurikabe
           </button>
           <button id="solve" class="button-6" role="button">Solve</button>
           <div class="note">
             <h6>Opomba:</h6>
             <p>
-              Bolj je mravlja požrešna, manj naključni je rezultat. Problem
-              'nurikabe10x10v1.csv' se reši, če je ta vrednos bližje 0.5
-              hitreje. Nekateri drugi večji problemi se tudi dajo rešit z več
-              iteracij in manjšo požrešnostjo mravelj. Pri večini primerih pa
-              zgleda boljša višja vrednost, proti 0.9 (tako kot je v članku).
+              Bolj je mravlja požrešna, manj naključni je rezultat. Problem 'nurikabe10x10v1.csv' se
+              reši, če je ta vrednos bližje 0.5 hitreje. Nekateri drugi večji problemi se tudi dajo
+              rešit z več iteracij in manjšo požrešnostjo mravelj. Pri večini primerih pa zgleda
+              boljša višja vrednost, proti 0.9 (tako kot je v članku).
             </p>
           </div>
           <div class="note">
             <h6>Opomba:</h6>
             <p>
-              Pri testiranju na drugem računalniku, mi je 5x hitreje izvedlo
-              algoritem v Chromu (testirano na Windows). No mojem glavnem
-              računalniku pa uporabljam linux in testiral večino na Firefox, pa
-              nisem upazil tako velike razlike med brskalnikama. Probajte v več
-              brskalnikih.
+              Pri testiranju na drugem računalniku, mi je 5x hitreje izvedlo algoritem v Chromu
+              (testirano na Windows). Na mojem glavnem računalniku pa uporabljam Linux in sem
+              testiral večino na Firefox.
             </p>
           </div>
         </div>
       </div>
     </section>
-    <!-- <script type="application/javascript" src="./pkg/nurikabe.js"></script> -->
     <script type="application/javascript" src="./mouse.js"></script>
     <script type="application/javascript" src="./view.js"></script>
     <script type="module" src="./index.js"></script>
